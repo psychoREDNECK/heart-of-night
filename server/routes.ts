@@ -8,16 +8,28 @@ import path from "path";
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['.py', '.pyw', '.zip'];
+    const allowedTypes = [
+      '.py', '.pyw',           // Python files
+      '.zip', '.tar', '.gz',   // Archives
+      '.txt', '.md', '.rst',   // Documentation
+      '.json', '.xml', '.yml', '.yaml', // Config files
+      '.js', '.html', '.css',  // Web assets
+      '.png', '.jpg', '.jpeg', '.gif', '.svg', // Images
+      '.mp3', '.wav', '.ogg',  // Audio
+      '.mp4', '.avi', '.mov',  // Video
+      '.pdf', '.doc', '.docx', // Documents
+      '.csv', '.tsv',          // Data files
+      '.sql', '.db'            // Database files
+    ];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only Python files (.py, .pyw) and ZIP archives are allowed'));
+      cb(new Error(`File type ${ext} not supported. Supported types: Python files, archives, documentation, config files, web assets, media files, and more.`));
     }
   },
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB limit (increased for media files)
   }
 });
 
@@ -110,10 +122,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const uploadedFiles = [];
       for (const file of files) {
+        // Determine if file content should be stored as text or binary
+        const isBinaryFile = /\.(zip|tar|gz|png|jpg|jpeg|gif|svg|mp3|wav|ogg|mp4|avi|mov|pdf|doc|docx)$/i.test(file.originalname);
+        
+        let content: string;
+        if (isBinaryFile) {
+          content = `[BINARY FILE: ${file.originalname} - ${file.size} bytes]`;
+        } else {
+          try {
+            content = file.buffer.toString('utf-8');
+          } catch (error) {
+            content = `[ENCODING ERROR: Unable to read ${file.originalname} as UTF-8]`;
+          }
+        }
+        
         const fileData = {
           projectId: req.params.projectId,
           name: file.originalname,
-          content: file.buffer.toString('utf-8'),
+          content,
           type: 'file' as const,
           size: file.size,
         };
@@ -125,6 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(uploadedFiles);
     } catch (error) {
+      console.error('File upload error:', error);
       res.status(400).json({ message: "Failed to upload files" });
     }
   });

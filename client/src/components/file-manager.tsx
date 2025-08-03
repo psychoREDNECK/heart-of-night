@@ -109,10 +109,55 @@ export default function FileManager({
     if (fileName.includes('/') || fileName.endsWith('/')) {
       return <Folder className="h-4 w-4 text-amber-500" />;
     }
-    if (fileName.endsWith('.py') || fileName.endsWith('.pyw')) {
-      return <FileCode className="h-4 w-4 text-primary" />;
+    
+    const ext = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
+    
+    // Python files
+    if (['.py', '.pyw'].includes(ext)) {
+      return <FileCode className="h-4 w-4 text-blue-600" />;
     }
-    return <FileCode className="h-4 w-4 text-blue-500" />;
+    
+    // Archives
+    if (['.zip', '.tar', '.gz'].includes(ext)) {
+      return <FileCode className="h-4 w-4 text-purple-600" />;
+    }
+    
+    // Documentation
+    if (['.txt', '.md', '.rst'].includes(ext)) {
+      return <FileCode className="h-4 w-4 text-gray-600" />;
+    }
+    
+    // Config files
+    if (['.json', '.xml', '.yml', '.yaml'].includes(ext)) {
+      return <FileCode className="h-4 w-4 text-orange-600" />;
+    }
+    
+    // Web files
+    if (['.js', '.html', '.css'].includes(ext)) {
+      return <FileCode className="h-4 w-4 text-green-600" />;
+    }
+    
+    // Images
+    if (['.png', '.jpg', '.jpeg', '.gif', '.svg'].includes(ext)) {
+      return <FileCode className="h-4 w-4 text-pink-600" />;
+    }
+    
+    // Audio/Video
+    if (['.mp3', '.wav', '.ogg', '.mp4', '.avi', '.mov'].includes(ext)) {
+      return <FileCode className="h-4 w-4 text-red-600" />;
+    }
+    
+    // Documents
+    if (['.pdf', '.doc', '.docx'].includes(ext)) {
+      return <FileCode className="h-4 w-4 text-indigo-600" />;
+    }
+    
+    // Data files
+    if (['.csv', '.tsv', '.sql', '.db'].includes(ext)) {
+      return <FileCode className="h-4 w-4 text-cyan-600" />;
+    }
+    
+    return <FileCode className="h-4 w-4 text-slate-500" />;
   };
 
   const formatFileSize = (bytes: number) => {

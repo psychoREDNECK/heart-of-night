@@ -67,8 +67,21 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
         return;
       }
 
+      const validExtensions = [
+        '.py', '.pyw',           // Python files
+        '.zip', '.tar', '.gz',   // Archives
+        '.txt', '.md', '.rst',   // Documentation
+        '.json', '.xml', '.yml', '.yaml', // Config files
+        '.js', '.html', '.css',  // Web assets
+        '.png', '.jpg', '.jpeg', '.gif', '.svg', // Images
+        '.mp3', '.wav', '.ogg',  // Audio
+        '.mp4', '.avi', '.mov',  // Video
+        '.pdf', '.doc', '.docx', // Documents
+        '.csv', '.tsv',          // Data files
+        '.sql', '.db'            // Database files
+      ];
+
       const validFiles = acceptedFiles.filter(file => {
-        const validExtensions = ['.py', '.pyw', '.zip'];
         const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
         return validExtensions.includes(extension);
       });
@@ -76,7 +89,7 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
       if (validFiles.length === 0) {
         toast({
           title: "Invalid Files",
-          description: "Please upload only Python files (.py, .pyw) or ZIP archives",
+          description: "Please upload supported file types: Python files, archives, documentation, config files, web assets, media files, etc.",
           variant: "destructive",
         });
         return;
@@ -105,6 +118,25 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
     accept: {
       'text/x-python': ['.py', '.pyw'],
       'application/zip': ['.zip'],
+      'application/x-tar': ['.tar'],
+      'application/gzip': ['.gz'],
+      'text/plain': ['.txt', '.md', '.rst'],
+      'application/json': ['.json'],
+      'application/xml': ['.xml'],
+      'application/x-yaml': ['.yml', '.yaml'],
+      'text/javascript': ['.js'],
+      'text/html': ['.html'],
+      'text/css': ['.css'],
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.svg'],
+      'audio/*': ['.mp3', '.wav', '.ogg'],
+      'video/*': ['.mp4', '.avi', '.mov'],
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'text/csv': ['.csv'],
+      'text/tab-separated-values': ['.tsv'],
+      'application/sql': ['.sql'],
+      'application/x-sqlite3': ['.db']
     },
     multiple: true,
   });
@@ -112,9 +144,9 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Upload Python Files</CardTitle>
+        <CardTitle>Upload Project Files</CardTitle>
         <CardDescription>
-          Upload your Python (.py) files to convert them into an APK
+          Upload your Python files, assets, configs, and other project files to convert them into an APK
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -129,14 +161,23 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
             <CloudUpload className="w-full h-full" />
           </div>
           <h3 className="text-lg font-medium text-slate-900 mb-2">
-            {isDragActive ? "Drop files here" : "Drop your Python files here"}
+            {isDragActive ? "Drop files here" : "Drop your project files here"}
           </h3>
           <p className="text-slate-600 mb-4">or click to browse files</p>
-          <div className="flex items-center justify-center space-x-2 text-sm text-slate-500">
-            <span>Supported:</span>
-            <span className="bg-slate-100 px-2 py-1 rounded">.py</span>
-            <span className="bg-slate-100 px-2 py-1 rounded">.pyw</span>
-            <span className="bg-slate-100 px-2 py-1 rounded">.zip</span>
+          <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-slate-500">
+            <span>Supported file types:</span>
+            <div className="flex flex-wrap gap-1">
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">.py</span>
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">.pyw</span>
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">.zip</span>
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">.txt</span>
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">.json</span>
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">.xml</span>
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">.md</span>
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">.png</span>
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">.jpg</span>
+              <span className="bg-slate-100 px-2 py-1 rounded text-xs">& more</span>
+            </div>
           </div>
         </div>
 

@@ -1,6 +1,14 @@
 # Overview
 
-PyToApk is a web-based development platform that converts Python applications into Android APK files. The application provides a complete IDE experience with project management, code editing, file upload capabilities, and an automated build system. Users can create projects, manage Python files, configure app settings, and build Android applications directly from their browser.
+PyToApk is a web-based development platform that converts Python applications into Android APK files. The application provides a complete IDE experience with project management, code editing, multi-format file upload capabilities, and an automated build system. Users can create projects, manage Python files along with assets, configuration files, documentation, and other project resources, configure app settings, and build Android applications directly from their browser.
+
+## Recent Changes (August 2025)
+- Enhanced file upload system to support multiple file types beyond Python (.py, .pyw)
+- Added support for archives (.zip, .tar, .gz), documentation (.txt, .md, .rst), config files (.json, .xml, .yml, .yaml), web assets (.js, .html, .css), images, audio, video, documents, and data files
+- Improved file type detection with color-coded icons in file manager
+- Increased file upload limit to 50MB to accommodate media files
+- Enhanced binary file handling with appropriate content storage for non-text files
+- Updated UI to reflect multi-format file support capabilities
 
 # User Preferences
 
@@ -19,7 +27,7 @@ Preferred communication style: Simple, everyday language.
 ## Backend Architecture
 - **Server Framework**: Express.js with TypeScript for REST API endpoints
 - **Development Server**: Vite integration for hot module replacement and development tooling
-- **File Handling**: Multer middleware for file uploads with validation for Python files and ZIP archives
+- **File Handling**: Multer middleware for file uploads with validation for multiple file types including Python files, archives, config files, media assets, and documents
 - **API Design**: RESTful endpoints for projects, files, and build management
 - **Error Handling**: Centralized error middleware with structured error responses
 
@@ -38,12 +46,13 @@ Preferred communication style: Simple, everyday language.
 ## Build System
 - **Process Tracking**: Multi-stage build process with progress monitoring (validation, dependency analysis, APK compilation, code signing)
 - **Status Management**: Real-time build status updates with error logging and progress indicators
-- **File Validation**: Python file type checking and size limits for security
+- **File Validation**: Multi-format file type checking (Python, archives, config, media, documents) with size limits for security
 - **Build Logs**: Persistent logging system for debugging build failures
+- **Asset Management**: Support for binary files, images, audio, video, and other project assets in APK generation
 
 ## External Dependencies
 - **Neon Database**: Serverless PostgreSQL hosting for production data storage
 - **Replit Platform**: Development environment integration with cartographer for debugging
-- **File Processing**: Support for Python (.py, .pyw) files and ZIP archive uploads
+- **File Processing**: Support for Python (.py, .pyw) files, archives (.zip, .tar, .gz), documentation (.txt, .md, .rst), config files (.json, .xml, .yml, .yaml), web assets (.js, .html, .css), images, audio, video, documents, and data files
 - **Build Tools**: Android SDK integration for APK generation and code signing
 - **Development Tools**: Vite plugin ecosystem for enhanced development experience

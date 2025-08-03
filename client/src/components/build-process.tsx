@@ -49,8 +49,8 @@ export default function BuildProcess({ currentProject }: BuildProcessProps) {
   const { data: buildLog, refetch: refetchBuildLog } = useQuery<BuildLog>({
     queryKey: ["/api/projects", currentProject?.id, "build"],
     enabled: !!currentProject,
-    refetchInterval: (data) => {
-      return data?.status === 'building' ? 1000 : false;
+    refetchInterval: (query) => {
+      return query.state.data?.status === 'building' ? 1000 : false;
     },
   });
 

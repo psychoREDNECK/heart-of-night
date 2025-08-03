@@ -47,8 +47,12 @@ export class MemStorage implements IStorage {
   async createProject(insertProject: InsertProject): Promise<Project> {
     const id = randomUUID();
     const project: Project = { 
-      ...insertProject, 
-      id, 
+      id,
+      name: insertProject.name,
+      packageName: insertProject.packageName,
+      version: insertProject.version || "1.0.0",
+      targetSdk: insertProject.targetSdk || "Android 13 (API 33)",
+      entryPoint: insertProject.entryPoint || "main.py",
       createdAt: new Date()
     };
     this.projects.set(id, project);
@@ -90,8 +94,12 @@ export class MemStorage implements IStorage {
   async createProjectFile(insertFile: InsertProjectFile): Promise<ProjectFile> {
     const id = randomUUID();
     const file: ProjectFile = { 
-      ...insertFile, 
-      id, 
+      id,
+      projectId: insertFile.projectId,
+      name: insertFile.name,
+      content: insertFile.content,
+      type: insertFile.type,
+      size: insertFile.size || 0,
       createdAt: new Date()
     };
     this.projectFiles.set(id, file);
@@ -119,8 +127,11 @@ export class MemStorage implements IStorage {
   async createBuildLog(insertLog: InsertBuildLog): Promise<BuildLog> {
     const id = randomUUID();
     const log: BuildLog = { 
-      ...insertLog, 
-      id, 
+      id,
+      projectId: insertLog.projectId,
+      status: insertLog.status,
+      progress: insertLog.progress || 0,
+      logs: insertLog.logs || "",
       createdAt: new Date()
     };
     this.buildLogs.set(insertLog.projectId, log);
