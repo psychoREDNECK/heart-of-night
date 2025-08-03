@@ -84,17 +84,11 @@ export default function AIAssistant({ currentProject, selectedFileId, onFileChan
       }
 
       // Call the AI through backend
-      const response = await fetch('/api/ai', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider: aiConfig.provider,
-          content,
-          type,
-          config: aiConfig
-        })
+      const response = await apiRequest('POST', '/api/ai', {
+        provider: aiConfig.provider,
+        content,
+        type,
+        config: aiConfig
       });
 
       if (!response.ok) {

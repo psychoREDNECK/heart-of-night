@@ -35,7 +35,8 @@ jobs:
       
     - name: Build frontend
       run: |
-        npx vite build
+        # Build with production API URL for Android
+        VITE_API_URL=${{ secrets.API_URL || 'https://heart-of-night.replit.app' }} npx vite build
         ls -la dist/
         ls -la dist/public/
       
