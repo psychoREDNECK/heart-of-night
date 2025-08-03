@@ -197,7 +197,17 @@ export default function Home() {
               
               {/* AI Assistant */}
               <div className={`${isMobile ? 'col-span-1' : 'xl:col-span-1'}`}>
-                <AIAssistant />
+                <AIAssistant 
+                  currentProject={currentProject}
+                  selectedFileId={selectedFileId}
+                  onFileChange={() => {
+                    // Refresh project data when AI makes changes
+                    if (currentProject) {
+                      // Force re-fetch of project files
+                      window.location.reload();
+                    }
+                  }}
+                />
               </div>
             </div>
           </div>

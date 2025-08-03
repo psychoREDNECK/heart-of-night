@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Send, Bot, Code, MessageSquare, Settings, Zap, Terminal, Image, Sparkles } from "lucide-react";
+import { Send, Bot, Code, MessageSquare, Settings, Zap, Terminal, Image, Sparkles, Edit3, FileCode, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,13 @@ interface AIConfig {
   customName?: string;
 }
 
-export default function AIAssistant() {
+interface AIAssistantProps {
+  currentProject?: any;
+  selectedFileId?: string;
+  onFileChange?: () => void;
+}
+
+export default function AIAssistant({ currentProject, selectedFileId, onFileChange }: AIAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -41,6 +47,7 @@ export default function AIAssistant() {
   ]);
   const [input, setInput] = useState('');
   const [codeInput, setCodeInput] = useState('');
+  const [editInput, setEditInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [aiConfig, setAiConfig] = useState<AIConfig>({
     provider: 'mistral',
@@ -113,6 +120,88 @@ export default function AIAssistant() {
       toast({
         title: "AI Error",
         description: error instanceof Error ? error.message : "Failed to get AI response",
+        variant: "destructive",
+      });
+
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'system',
+        content: `ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const requestAIEdit = async (action: 'read_project' | 'edit_file' | 'create_file', instructions: string) => {
+    if (!instructions.trim()) return;
+    if (!currentProject && action !== 'create_file') {
+      toast({
+        title: "No Project Selected",
+        description: "Please select a project to edit",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: `[${action.toUpperCase().replace('_', ' ')}]\n${instructions}`,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setEditInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/ai/edit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          projectId: currentProject?.id,
+          fileId: selectedFileId,
+          instructions,
+          aiConfig
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'AI edit request failed');
+      }
+
+      const data = await response.json();
+      
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: data.response,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+
+      if (data.fileChanges && data.fileChanges.length > 0) {
+        toast({
+          title: "Files Updated",
+          description: `${data.fileChanges.length} file(s) modified by AI`,
+        });
+        
+        // Trigger file refresh
+        onFileChange?.();
+      }
+    } catch (error) {
+      toast({
+        title: "AI Edit Error",
+        description: error instanceof Error ? error.message : "Failed to process AI edit",
         variant: "destructive",
       });
 
@@ -439,6 +528,10 @@ export default function AIAssistant() {
               <Image className="h-4 w-4 mr-2" />
               IMAGE GEN
             </TabsTrigger>
+            <TabsTrigger value="edit" className="font-mono">
+              <Edit3 className="h-4 w-4 mr-2" />
+              CODE EDIT
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="chat" className="flex-1 flex flex-col">
@@ -558,6 +651,115 @@ A cyberpunk hacker in a dark room with neon lights, matrix code on screens, wear
                 <Sparkles className="h-4 w-4 mr-2" />
                 {isLoading ? 'GENERATING...' : 'GENERATE IMAGE'}
               </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="edit" className="flex-1 flex flex-col">
+            <div className="flex-1 p-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
+                <Button
+                  onClick={() => requestAIEdit('read_project', 'Analyze the current Heart of Night project structure and suggest improvements')}
+                  disabled={isLoading || !currentProject}
+                  className="font-mono text-xs"
+                  variant="outline"
+                >
+                  <FileCode className="h-3 w-3 mr-1" />
+                  READ PROJECT
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (selectedFileId) {
+                      requestAIEdit('edit_file', editInput || 'Review and improve this file');
+                    } else {
+                      toast({
+                        title: "No File Selected",
+                        description: "Select a file to edit",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  disabled={isLoading || !selectedFileId}
+                  className="font-mono text-xs"
+                  variant="outline"
+                >
+                  <Edit3 className="h-3 w-3 mr-1" />
+                  EDIT CURRENT
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (editInput.trim()) {
+                      requestAIEdit('create_file', editInput);
+                    } else {
+                      toast({
+                        title: "Instructions Required",
+                        description: "Enter instructions for file creation",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  disabled={isLoading || !currentProject}
+                  className="font-mono text-xs"
+                  variant="outline"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  CREATE FILE
+                </Button>
+              </div>
+              
+              <div>
+                <Label className="font-mono text-primary tracking-wider">
+                  AI CODE MODIFICATION INSTRUCTIONS
+                </Label>
+                <Textarea
+                  value={editInput}
+                  onChange={(e) => setEditInput(e.target.value)}
+                  placeholder="# Tell the AI what changes to make to the Heart of Night codebase
+
+Examples:
+- Add a new feature for file encryption
+- Fix the mobile layout issues  
+- Create a new component for user authentication
+- Optimize the build process
+- Add error handling to the file upload"
+                  className="min-h-[150px] font-mono mt-2"
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <Button
+                  onClick={() => requestAIEdit('read_project', editInput || 'Analyze the project and suggest improvements')}
+                  disabled={isLoading || !currentProject}
+                  className="neon-glow font-mono"
+                  variant="default"
+                >
+                  <Bot className="h-4 w-4 mr-2" />
+                  {isLoading ? 'PROCESSING...' : 'ANALYZE & SUGGEST'}
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (selectedFileId) {
+                      requestAIEdit('edit_file', editInput || 'Improve this file');
+                    } else {
+                      requestAIEdit('create_file', editInput || 'Create a new useful file for the project');
+                    }
+                  }}
+                  disabled={isLoading || !currentProject || !editInput.trim()}
+                  className="neon-glow font-mono"
+                  variant="default"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  {isLoading ? 'MODIFYING...' : selectedFileId ? 'EDIT FILE' : 'CREATE FILE'}
+                </Button>
+              </div>
+
+              {currentProject && (
+                <div className="text-xs font-mono text-muted-foreground border-t border-primary/20 pt-2">
+                  <div>PROJECT: {currentProject.name}</div>
+                  {selectedFileId && <div>SELECTED FILE: Ready for editing</div>}
+                  <div>AI PROVIDER: {aiConfig.provider.toUpperCase()}</div>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
