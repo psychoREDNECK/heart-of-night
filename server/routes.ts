@@ -275,7 +275,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case 'llama-maverick':
           response = await callLlamaMaverick(content, systemPrompt, config);
           break;
+        case 'mistral':
+          response = await callMistral(content, systemPrompt, config);
+          break;
+        case 'ollama':
+          response = await callOllama(content, systemPrompt, config);
+          break;
+        case 'together':
+          response = await callTogether(content, systemPrompt, config);
+          break;
         case 'openai':
+          if (type === 'image') {
+            const imageUrl = await generateImageOpenAI(content, config);
+            return res.json({ response: 'Image generated successfully', imageUrl });
+          }
           response = await callOpenAI(content, systemPrompt, config);
           break;
         case 'anthropic':
@@ -414,4 +427,120 @@ async function callCustomEndpoint(content: string, systemPrompt: string, config:
 
   const data = await response.json();
   return data.response || data.content || data.text || 'No response from custom AI';
+}
+
+async function callMistral(content: string, systemPrompt: string, config: any): Promise<string> {
+  if (!config.apiKey) {
+    throw new Error('Mistral API key required');
+  }
+
+  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.apiKey}`
+    },
+    body: JSON.stringify({
+      model: config.model || 'mistral-large-latest',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: content }
+      ],
+      max_tokens: 1000,
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Mistral API error: ${response.status} - ${await response.text()}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || 'No response from Mistral';
+}
+
+async function callOllama(content: string, systemPrompt: string, config: any): Promise<string> {
+  const endpoint = config.endpoint || 'http://localhost:11434/api/generate';
+  
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: config.model || 'llama2-uncensored',
+      prompt: `${systemPrompt}\n\nUser: ${content}\nAssistant:`,
+      stream: false,
+      options: {
+        temperature: 0.7,
+        top_p: 0.9,
+        max_tokens: 1000
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Ollama API error: ${response.status} - ${await response.text()}`);
+  }
+
+  const data = await response.json();
+  return data.response || data.content || 'No response from Ollama';
+}
+
+async function callTogether(content: string, systemPrompt: string, config: any): Promise<string> {
+  if (!config.apiKey) {
+    throw new Error('Together AI API key required');
+  }
+
+  const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.apiKey}`
+    },
+    body: JSON.stringify({
+      model: config.model || 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: content }
+      ],
+      max_tokens: 1000,
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Together AI API error: ${response.status} - ${await response.text()}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || 'No response from Together AI';
+}
+
+async function generateImageOpenAI(prompt: string, config: any): Promise<string> {
+  if (!config.apiKey) {
+    throw new Error('OpenAI API key required for image generation');
+  }
+
+  const response = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.apiKey}`
+    },
+    body: JSON.stringify({
+      model: 'dall-e-3',
+      prompt: prompt,
+      n: 1,
+      size: '1024x1024',
+      quality: 'standard'
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI Image API error: ${response.status} - ${await response.text()}`);
+  }
+
+  const data = await response.json();
+  return data.data[0]?.url || '';
 }

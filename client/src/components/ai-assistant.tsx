@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Send, Bot, Code, MessageSquare, Settings, Zap, Terminal } from "lucide-react";
+import { Send, Bot, Code, MessageSquare, Settings, Zap, Terminal, Image, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,10 +18,12 @@ interface Message {
   content: string;
   timestamp: Date;
   codeBlock?: string;
+  imageUrl?: string;
+  isImageGeneration?: boolean;
 }
 
 interface AIConfig {
-  provider: 'openai' | 'anthropic' | 'llama-maverick' | 'custom';
+  provider: 'openai' | 'anthropic' | 'llama-maverick' | 'mistral' | 'ollama' | 'together' | 'custom';
   apiKey: string;
   model: string;
   endpoint?: string;
@@ -41,24 +43,26 @@ export default function AIAssistant() {
   const [codeInput, setCodeInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [aiConfig, setAiConfig] = useState<AIConfig>({
-    provider: 'llama-maverick',
+    provider: 'mistral',
     apiKey: '',
-    model: 'maverick-4',
+    model: 'mistral-large-latest',
     endpoint: '',
-    customName: 'LLaMA Maverick 4'
+    customName: ''
   });
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const { toast } = useToast();
 
-  const sendMessage = async (content: string, type: 'chat' | 'code' = 'chat') => {
+  const sendMessage = async (content: string, type: 'chat' | 'code' | 'image' = 'chat') => {
     if (!content.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: type === 'code' ? `[CODE ANALYSIS REQUEST]\n${content}` : content,
+      content: type === 'code' ? `[CODE ANALYSIS REQUEST]\n${content}` : 
+               type === 'image' ? `[IMAGE GENERATION REQUEST]\n${content}` : content,
       timestamp: new Date(),
-      codeBlock: type === 'code' ? content : undefined
+      codeBlock: type === 'code' ? content : undefined,
+      isImageGeneration: type === 'image'
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -67,8 +71,8 @@ export default function AIAssistant() {
     setIsLoading(true);
 
     try {
-      // Check if API key is configured (not required for LLaMA Maverick)
-      if (!aiConfig.apiKey && aiConfig.provider !== 'llama-maverick') {
+      // Check if API key is configured (not required for local providers)
+      if (!aiConfig.apiKey && !['llama-maverick', 'ollama'].includes(aiConfig.provider)) {
         throw new Error('AI API key not configured');
       }
 
@@ -93,12 +97,15 @@ export default function AIAssistant() {
 
       const data = await response.json();
       const aiResponse = data.response;
+      const imageUrl = data.imageUrl;
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
         content: aiResponse,
-        timestamp: new Date()
+        timestamp: new Date(),
+        imageUrl: imageUrl,
+        isImageGeneration: type === 'image'
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -269,8 +276,8 @@ export default function AIAssistant() {
   };
 
   const saveConfig = () => {
-    // LLaMA Maverick might not require API key if running locally
-    if (!aiConfig.apiKey && aiConfig.provider !== 'llama-maverick') {
+    // Some providers might not require API key if running locally
+    if (!aiConfig.apiKey && !['llama-maverick', 'ollama'].includes(aiConfig.provider)) {
       toast({
         title: "Configuration Error",
         description: "API key is required for this provider",
@@ -308,9 +315,12 @@ export default function AIAssistant() {
             [AI OPERATOR]
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge variant={aiConfig.apiKey || aiConfig.provider === 'llama-maverick' ? "default" : "destructive"} className="font-mono text-xs">
-              {(aiConfig.apiKey || aiConfig.provider === 'llama-maverick') ? 
-                (aiConfig.provider === 'llama-maverick' ? 'MAVERICK-4' :
+            <Badge variant={aiConfig.apiKey || ['llama-maverick', 'ollama'].includes(aiConfig.provider) ? "default" : "destructive"} className="font-mono text-xs">
+              {(aiConfig.apiKey || ['llama-maverick', 'ollama'].includes(aiConfig.provider)) ? 
+                (aiConfig.provider === 'mistral' ? 'MISTRAL' :
+                 aiConfig.provider === 'llama-maverick' ? 'MAVERICK-4' :
+                 aiConfig.provider === 'ollama' ? 'OLLAMA' :
+                 aiConfig.provider === 'together' ? 'TOGETHER' :
                  aiConfig.provider === 'openai' ? 'GPT-4' :
                  aiConfig.provider === 'anthropic' ? 'CLAUDE' :
                  aiConfig.customName || 'CUSTOM') : 'OFFLINE'}
@@ -333,7 +343,10 @@ export default function AIAssistant() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="mistral">Mistral (Uncensored)</SelectItem>
                         <SelectItem value="llama-maverick">LLaMA Maverick 4</SelectItem>
+                        <SelectItem value="ollama">Ollama (Local)</SelectItem>
+                        <SelectItem value="together">Together AI</SelectItem>
                         <SelectItem value="openai">OpenAI GPT</SelectItem>
                         <SelectItem value="anthropic">Anthropic Claude</SelectItem>
                         <SelectItem value="custom">Custom AI</SelectItem>
@@ -358,7 +371,10 @@ export default function AIAssistant() {
                       value={aiConfig.model}
                       onChange={(e) => setAiConfig(prev => ({ ...prev, model: e.target.value }))}
                       placeholder={
+                        aiConfig.provider === 'mistral' ? 'mistral-large-latest' :
                         aiConfig.provider === 'llama-maverick' ? 'maverick-4' :
+                        aiConfig.provider === 'ollama' ? 'llama2-uncensored' :
+                        aiConfig.provider === 'together' ? 'mistralai/Mixtral-8x7B-Instruct-v0.1' :
                         aiConfig.provider === 'openai' ? 'gpt-4' :
                         aiConfig.provider === 'anthropic' ? 'claude-3-sonnet-20240229' :
                         'your-model'
@@ -366,10 +382,11 @@ export default function AIAssistant() {
                       className="font-mono"
                     />
                   </div>
-                  {(aiConfig.provider === 'custom' || aiConfig.provider === 'llama-maverick') && (
+                  {(aiConfig.provider === 'custom' || aiConfig.provider === 'llama-maverick' || aiConfig.provider === 'ollama') && (
                     <div className="grid gap-2">
                       <Label htmlFor="endpoint" className="font-mono">
-                        {aiConfig.provider === 'llama-maverick' ? 'LLaMA Endpoint' : 'Custom Endpoint'}
+                        {aiConfig.provider === 'llama-maverick' ? 'LLaMA Endpoint' : 
+                         aiConfig.provider === 'ollama' ? 'Ollama Endpoint' : 'Custom Endpoint'}
                       </Label>
                       <Input
                         id="endpoint"
@@ -378,6 +395,8 @@ export default function AIAssistant() {
                         placeholder={
                           aiConfig.provider === 'llama-maverick' 
                             ? 'http://localhost:11434/api/generate' 
+                            : aiConfig.provider === 'ollama'
+                            ? 'http://localhost:11434/api/generate'
                             : 'https://api.example.com/v1'
                         }
                         className="font-mono"
@@ -416,6 +435,10 @@ export default function AIAssistant() {
               <Code className="h-4 w-4 mr-2" />
               CODE ANALYSIS
             </TabsTrigger>
+            <TabsTrigger value="image" className="font-mono">
+              <Image className="h-4 w-4 mr-2" />
+              IMAGE GEN
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="chat" className="flex-1 flex flex-col">
@@ -436,6 +459,15 @@ export default function AIAssistant() {
                       }`}
                     >
                       <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                      {message.imageUrl && (
+                        <div className="mt-2">
+                          <img 
+                            src={message.imageUrl} 
+                            alt="Generated image" 
+                            className="max-w-full h-auto rounded-lg border border-primary/20"
+                          />
+                        </div>
+                      )}
                       <div className="text-xs opacity-70 mt-2">
                         {message.timestamp.toLocaleTimeString()}
                       </div>
@@ -480,8 +512,8 @@ export default function AIAssistant() {
             <div className="flex-1 p-4 space-y-4">
               <div>
                 <Label className="font-mono text-primary tracking-wider">
-          DEPLOY CODE FOR {aiConfig.provider === 'llama-maverick' ? 'MAVERICK' : 'AI'} ANALYSIS
-        </Label>
+                  DEPLOY CODE FOR {aiConfig.provider === 'llama-maverick' ? 'MAVERICK' : 'AI'} ANALYSIS
+                </Label>
                 <Textarea
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
@@ -499,6 +531,32 @@ def my_function():
               >
                 <Zap className="h-4 w-4 mr-2" />
                 {isLoading ? 'ANALYZING...' : 'ANALYZE CODE'}
+              </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="image" className="flex-1 flex flex-col">
+            <div className="flex-1 p-4 space-y-4">
+              <div>
+                <Label className="font-mono text-primary tracking-wider">
+                  DEPLOY PROMPT FOR AI IMAGE SYNTHESIS
+                </Label>
+                <Textarea
+                  value={codeInput}
+                  onChange={(e) => setCodeInput(e.target.value)}
+                  placeholder="# Describe the image you want to generate
+A cyberpunk hacker in a dark room with neon lights, matrix code on screens, wearing a black hoodie"
+                  className="min-h-[120px] font-mono mt-2"
+                  disabled={isLoading}
+                />
+              </div>
+              <Button
+                onClick={() => sendMessage(codeInput, 'image')}
+                disabled={isLoading || !codeInput.trim()}
+                className="w-full neon-glow font-mono"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {isLoading ? 'GENERATING...' : 'GENERATE IMAGE'}
               </Button>
             </div>
           </TabsContent>
