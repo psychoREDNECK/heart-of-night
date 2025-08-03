@@ -125,4 +125,32 @@
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
   }
+  
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    /* Larger touch targets for mobile */
+    button {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Better spacing for mobile */
+    .space-y-2 > * + * {
+      margin-top: 0.75rem;
+    }
+    
+    /* Larger text on mobile for readability */
+    .text-xs {
+      font-size: 0.875rem;
+    }
+    
+    .text-sm {
+      font-size: 1rem;
+    }
+    
+    /* More padding for clickable areas */
+    .cursor-pointer {
+      padding: 0.75rem;
+    }
+  }
 }

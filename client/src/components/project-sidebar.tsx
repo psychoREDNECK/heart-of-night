@@ -94,7 +94,12 @@ export default function ProjectSidebar({
             <span className="text-sm font-medium text-primary font-mono tracking-wider">ACTIVE TARGET</span>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-sm text-primary hover:text-primary px-4 py-2 min-h-[40px]"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
                   New
                 </Button>
               </DialogTrigger>
@@ -141,7 +146,7 @@ export default function ProjectSidebar({
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="mt-2"
+                  className="mt-2 px-4 py-2 min-h-[44px]"
                   onClick={() => setIsCreateDialogOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-1" />

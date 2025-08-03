@@ -86,9 +86,9 @@ export default function Home() {
       <div className="fixed top-0 left-0 w-full h-1 scanline z-50"></div>
       
       {/* Header */}
-      <header className="bg-card border-b border-primary/20 sticky top-0 z-40 backdrop-blur-sm">
+      <header className="bg-card border-b border-primary/20 sticky top-0 z-40 backdrop-blur-sm shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20 py-2">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 <div className="relative">
@@ -113,15 +113,30 @@ export default function Home() {
             
             {/* Actions */}
             {isMobile ? (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="icon" onClick={handleMobileShare} className="neon-glow hover:bg-primary/10">
-                  <Share2 className="h-5 w-5 text-primary" />
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="ghost" 
+                  onClick={handleMobileShare} 
+                  className="neon-glow hover:bg-primary/10 h-12 w-12 p-0"
+                  aria-label="Share"
+                >
+                  <Share2 className="h-6 w-6 text-primary" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleMobileDownload} disabled={!currentProject} className="neon-glow hover:bg-primary/10">
-                  <Download className="h-5 w-5 text-primary" />
+                <Button 
+                  variant="ghost" 
+                  onClick={handleMobileDownload} 
+                  disabled={!currentProject} 
+                  className="neon-glow hover:bg-primary/10 h-12 w-12 p-0"
+                  aria-label="Download"
+                >
+                  <Download className="h-6 w-6 text-primary" />
                 </Button>
-                <Button variant="ghost" size="icon" className="neon-glow hover:bg-primary/10">
-                  <Menu className="h-5 w-5 text-primary" />
+                <Button 
+                  variant="ghost" 
+                  className="neon-glow hover:bg-primary/10 h-12 w-12 p-0"
+                  aria-label="Menu"
+                >
+                  <Menu className="h-6 w-6 text-primary" />
                 </Button>
               </div>
             ) : (
@@ -199,7 +214,7 @@ export default function Home() {
               <div className={`${isMobile ? 'col-span-1' : 'xl:col-span-1'}`}>
                 <AIAssistant 
                   currentProject={currentProject}
-                  selectedFileId={selectedFileId}
+                  selectedFileId={selectedFileId || undefined}
                   onFileChange={() => {
                     // Refresh project data when AI makes changes
                     if (currentProject) {
