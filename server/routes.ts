@@ -256,6 +256,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Code Editor endpoint
+  app.post('/api/ai/edit', async (req, res) => {
+    try {
+      const { action, projectId, fileId, instructions, aiConfig } = req.body;
+
+      if (!action || !instructions) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      let response = '';
+      let fileChanges = [];
+
+      switch (action) {
+        case 'read_project':
+          const projectFiles = await storage.getProjectFiles(projectId);
+          const fileContents = await Promise.all(
+            projectFiles.map(async (file) => ({
+              id: file.id,
+              name: file.name,
+              content: file.content,
+              type: file.type
+            }))
+          );
+          
+          const systemPrompt = `You are an AI assistant that can edit code directly. You have access to the Heart of Night project files. 
+Current project structure:
+${fileContents.map(f => `- ${f.name} (${f.type})`).join('\n')}
+
+When the user asks you to make changes:
+1. Read and understand the current code
+2. Make specific, targeted changes
+3. Respond with the changes made and reasoning
+4. Use proper error handling and maintain code quality`;
+
+          response = await callAIWithContext(instructions, systemPrompt, fileContents, aiConfig);
+          break;
+
+        case 'edit_file':
+          const targetFile = await storage.getProjectFile(fileId);
+          if (!targetFile) {
+            return res.status(404).json({ error: 'File not found' });
+          }
+
+          const editPrompt = `You are editing the file "${targetFile.name}" in the Heart of Night project.
+Current file content:
+\`\`\`${targetFile.type}
+${targetFile.content}
+\`\`\`
+
+User request: ${instructions}
+
+Provide the complete updated file content. Maintain proper formatting and syntax.`;
+
+          const newContent = await callAIWithContext(editPrompt, '', [], aiConfig);
+          
+          // Update the file
+          await storage.updateProjectFile(fileId, { content: newContent });
+          
+          response = `File "${targetFile.name}" updated successfully. Changes made: ${instructions}`;
+          fileChanges.push({
+            fileId,
+            fileName: targetFile.name,
+            action: 'modified'
+          });
+          break;
+
+        case 'create_file':
+          const project = await storage.getProject(projectId);
+          if (!project) {
+            return res.status(404).json({ error: 'Project not found' });
+          }
+
+          const createPrompt = `Create a new file for the Heart of Night project.
+User request: ${instructions}
+
+Provide:
+1. Suggested filename with extension
+2. Complete file content
+3. Brief description of what the file does
+
+Format your response as:
+FILENAME: [filename]
+DESCRIPTION: [description]
+CONTENT:
+[file content]`;
+
+          const createResponse = await callAIWithContext(createPrompt, '', [], aiConfig);
+          
+          // Parse AI response to extract filename and content
+          const filenameMatch = createResponse.match(/FILENAME:\s*(.+)/);
+          const contentMatch = createResponse.match(/CONTENT:\s*([\s\S]+)/);
+          
+          if (filenameMatch && contentMatch) {
+            const filename = filenameMatch[1].trim();
+            const content = contentMatch[1].trim();
+            
+            const newFile = await storage.createProjectFile({
+              projectId,
+              name: filename,
+              content,
+              type: getFileType(filename)
+            });
+            
+            response = `Created new file "${filename}". ${createResponse}`;
+            fileChanges.push({
+              fileId: newFile.id,
+              fileName: filename,
+              action: 'created'
+            });
+          } else {
+            response = createResponse;
+          }
+          break;
+
+        default:
+          return res.status(400).json({ error: 'Unknown action' });
+      }
+
+      res.json({ response, fileChanges });
+    } catch (error) {
+      console.error('AI edit error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'AI edit request failed' 
+      });
+    }
+  });
+
   // AI Assistant endpoint
   app.post('/api/ai', async (req, res) => {
     try {
@@ -543,4 +670,48 @@ async function generateImageOpenAI(prompt: string, config: any): Promise<string>
 
   const data = await response.json();
   return data.data[0]?.url || '';
+}
+
+async function callAIWithContext(prompt: string, systemPrompt: string, fileContents: any[], config: any): Promise<string> {
+  const contextualPrompt = fileContents.length > 0 
+    ? `${prompt}\n\nProject Files Context:\n${fileContents.map(f => `=== ${f.name} ===\n${f.content}\n`).join('\n')}`
+    : prompt;
+
+  switch (config.provider) {
+    case 'mistral':
+      return await callMistral(contextualPrompt, systemPrompt, config);
+    case 'llama-maverick':
+      return await callLlamaMaverick(contextualPrompt, systemPrompt, config);
+    case 'ollama':
+      return await callOllama(contextualPrompt, systemPrompt, config);
+    case 'together':
+      return await callTogether(contextualPrompt, systemPrompt, config);
+    case 'openai':
+      return await callOpenAI(contextualPrompt, systemPrompt, config);
+    case 'anthropic':
+      return await callAnthropic(contextualPrompt, systemPrompt, config);
+    case 'custom':
+      return await callCustomEndpoint(contextualPrompt, systemPrompt, config);
+    default:
+      throw new Error('Unknown AI provider');
+  }
+}
+
+function getFileType(filename: string): string {
+  const ext = filename.toLowerCase().split('.').pop();
+  const typeMap: { [key: string]: string } = {
+    'py': 'python',
+    'pyw': 'python',
+    'js': 'javascript',
+    'ts': 'typescript',
+    'html': 'html',
+    'css': 'css',
+    'json': 'json',
+    'md': 'markdown',
+    'txt': 'text',
+    'xml': 'xml',
+    'yml': 'yaml',
+    'yaml': 'yaml'
+  };
+  return typeMap[ext || ''] || 'text';
 }
