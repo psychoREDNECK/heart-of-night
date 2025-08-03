@@ -1,6 +1,6 @@
 # Overview
 
-PyToApk is a web-based development platform that converts Python applications into Android APK files. The application provides a complete IDE experience with project management, code editing, multi-format file upload capabilities, and an automated build system. Users can create projects, manage Python files along with assets, configuration files, documentation, and other project resources, configure app settings, and build Android applications directly from their browser.
+**Heart of Night** is a hacker-themed Python-to-APK weaponization platform that converts Python applications into Android APK files. This cybersecurity-focused development environment provides a complete IDE experience with project management, code editing, multi-format file upload capabilities, and an automated build system. Users can create projects, manage Python files along with assets, configuration files, documentation, and other project resources, configure app settings, and build Android applications directly from their browser. The interface features a Matrix-inspired dark theme with terminal aesthetics, neon green accents, and hacker-style terminology throughout the application.
 
 ## Recent Changes (August 2025)
 - Enhanced file upload system to support multiple file types beyond Python (.py, .pyw)
@@ -13,6 +13,9 @@ PyToApk is a web-based development platform that converts Python applications in
 - **Mobile-Optimized UI**: Responsive design that adapts to mobile devices with touch-friendly interactions
 - **Native Mobile Features**: File system access, native sharing, device storage integration, and splash screen
 - **Cross-Platform Support**: Single codebase runs on web browsers and Android devices
+- **Hacker Theme Transformation**: Complete UI overhaul to "Heart of Night" with cyberpunk aesthetics
+- **Terminal Interface**: Matrix-inspired design with neon green colors, monospace fonts, and hacker terminology
+- **Advanced Visual Effects**: Glitch text animations, scanline effects, matrix grid backgrounds, and neon glows
 
 # User Preferences
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Smartphone, Menu, Download, Share2 } from "lucide-react";
+import { Terminal, Menu, Download, Share2, Zap, Shield, Code2, Eye, Bug } from "lucide-react";
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
@@ -80,55 +80,70 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background matrix-bg">
+      {/* Scanline Effect */}
+      <div className="fixed top-0 left-0 w-full h-1 scanline z-50"></div>
+      
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-card border-b border-primary/20 sticky top-0 z-40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Smartphone className="h-6 w-6 text-primary" />
-                <h1 className="text-xl font-bold text-slate-900">PyToApk</h1>
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <Terminal className="h-7 w-7 text-primary neon-glow" />
+                  <Zap className="h-3 w-3 text-accent absolute -top-1 -right-1" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-primary glitch-text tracking-wider">
+                    HEART OF NIGHT
+                  </h1>
+                  <div className="text-xs text-muted-foreground tracking-widest">
+                    PYTHON WEAPONIZER v3.0
+                  </div>
+                </div>
                 {isMobile && (
-                  <span className="text-xs text-white bg-primary px-2 py-1 rounded-full">
-                    Mobile
+                  <span className="text-xs text-background bg-accent px-2 py-1 rounded font-mono font-bold">
+                    MOBILE
                   </span>
                 )}
               </div>
-              <span className="text-sm text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
-                v2.1.0
-              </span>
             </div>
             
-            {/* Mobile Actions */}
+            {/* Actions */}
             {isMobile ? (
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="icon" onClick={handleMobileShare}>
-                  <Share2 className="h-5 w-5" />
+                <Button variant="ghost" size="icon" onClick={handleMobileShare} className="neon-glow hover:bg-primary/10">
+                  <Share2 className="h-5 w-5 text-primary" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleMobileDownload} disabled={!currentProject}>
-                  <Download className="h-5 w-5" />
+                <Button variant="ghost" size="icon" onClick={handleMobileDownload} disabled={!currentProject} className="neon-glow hover:bg-primary/10">
+                  <Download className="h-5 w-5 text-primary" />
                 </Button>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="neon-glow hover:bg-primary/10">
+                  <Menu className="h-5 w-5 text-primary" />
                 </Button>
               </div>
             ) : (
               <>
                 <nav className="hidden md:flex items-center space-x-6">
-                  <a href="#" className="text-slate-600 hover:text-slate-900 font-medium">
-                    Projects
+                  <a href="#" className="text-muted-foreground hover:text-primary font-mono text-sm tracking-wider transition-colors">
+                    [TARGETS]
                   </a>
-                  <a href="#" className="text-slate-600 hover:text-slate-900 font-medium">
-                    Documentation
+                  <a href="#" className="text-muted-foreground hover:text-primary font-mono text-sm tracking-wider transition-colors">
+                    [DOCS]
                   </a>
-                  <a href="#" className="text-slate-600 hover:text-slate-900 font-medium">
-                    Settings
+                  <a href="#" className="text-muted-foreground hover:text-primary font-mono text-sm tracking-wider transition-colors">
+                    [CONFIG]
                   </a>
                 </nav>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="icon" className="neon-glow hover:bg-primary/10">
+                    <Eye className="h-5 w-5 text-primary" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="neon-glow hover:bg-primary/10 md:hidden">
+                    <Menu className="h-5 w-5 text-primary" />
+                  </Button>
+                </div>
               </>
             )}
           </div>

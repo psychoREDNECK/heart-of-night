@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.pytoapk',
-  appName: 'PyToApk',
+  appId: 'com.heartofnight.app',
+  appName: 'Heart of Night',
   webDir: 'dist/public',
   server: {
     androidScheme: 'https'
@@ -10,12 +10,12 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: "#3B82F6",
+      backgroundColor: "#0D1117",
       showSpinner: false
     },
     StatusBar: {
       style: "DARK",
-      backgroundColor: "#3B82F6"
+      backgroundColor: "#0D1117"
     }
   }
 };

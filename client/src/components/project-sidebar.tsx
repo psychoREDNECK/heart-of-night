@@ -85,13 +85,13 @@ export default function ProjectSidebar({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Project Navigator</CardTitle>
+        <CardTitle className="text-primary font-mono tracking-wider">[TARGET CONTROL]</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Current Project */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-slate-700">Current Project</span>
+            <span className="text-sm font-medium text-primary font-mono tracking-wider">ACTIVE TARGET</span>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary">
@@ -154,7 +154,7 @@ export default function ProjectSidebar({
 
         {/* Recent Projects */}
         <div>
-          <h3 className="text-sm font-medium text-slate-700 mb-3">Recent Projects</h3>
+          <h3 className="text-sm font-medium text-primary mb-3 font-mono tracking-wider">RECENT TARGETS</h3>
           <div className="space-y-2">
             {projects.slice(0, 5).map((project) => (
               <div
@@ -178,7 +178,7 @@ export default function ProjectSidebar({
 
         {/* Quick Actions */}
         <div>
-          <h3 className="text-sm font-medium text-slate-700 mb-3">Quick Actions</h3>
+          <h3 className="text-sm font-medium text-primary mb-3 font-mono tracking-wider">QUICK OPERATIONS</h3>
           <div className="space-y-2">
             <Button 
               variant="ghost" 

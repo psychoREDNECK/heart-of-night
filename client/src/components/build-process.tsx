@@ -131,23 +131,24 @@ export default function BuildProcess({ currentProject }: BuildProcessProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Build & Export</CardTitle>
+          <CardTitle className="text-primary font-mono tracking-wider">[APK COMPILER]</CardTitle>
           <div className="flex items-center space-x-2">
             <Button
               onClick={handleStartBuild}
               disabled={!currentProject || buildLog?.status === 'building' || startBuildMutation.isPending}
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 neon-glow font-mono"
             >
               <Hammer className="h-4 w-4 mr-2" />
-              {buildLog?.status === 'building' ? 'Building...' : 'Build APK'}
+              {buildLog?.status === 'building' ? '>>> COMPILING <<<' : '>>> EXECUTE <<<'}
             </Button>
             <Button
               variant="outline"
               onClick={handlePreview}
               disabled={!currentProject}
+              className="border-primary/30 text-primary hover:bg-primary/10 font-mono"
             >
               <Eye className="h-4 w-4 mr-2" />
-              Preview
+              PREVIEW
             </Button>
           </div>
         </div>

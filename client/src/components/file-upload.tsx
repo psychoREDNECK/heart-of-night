@@ -144,26 +144,26 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Upload Project Files</CardTitle>
-        <CardDescription>
-          Upload your Python files, assets, configs, and other project files to convert them into an APK
+        <CardTitle className="text-primary font-mono tracking-wider">[FILE INJECTION]</CardTitle>
+        <CardDescription className="text-muted-foreground font-mono">
+          Deploy Python payloads, assets, configs, and resources for APK weaponization
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
-            isDragActive ? "border-primary bg-primary/5" : "border-slate-300 hover:border-primary/50"
+          className={`border-2 border-dashed rounded p-8 text-center transition-all cursor-pointer matrix-bg ${
+            isDragActive ? "border-primary bg-primary/10 neon-glow" : "border-primary/30 hover:border-primary/70 hover:bg-primary/5"
           } ${!currentProject ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           <input {...getInputProps()} disabled={!currentProject} />
-          <div className="mx-auto w-12 h-12 text-slate-400 mb-4">
+          <div className="mx-auto w-12 h-12 text-primary mb-4 neon-glow">
             <CloudUpload className="w-full h-full" />
           </div>
-          <h3 className="text-lg font-medium text-slate-900 mb-2">
-            {isDragActive ? "Drop files here" : "Drop your project files here"}
+          <h3 className="text-lg font-medium text-primary mb-2 font-mono tracking-wider">
+            {isDragActive ? ">>> DEPLOYING FILES <<<" : ">>> DROP PAYLOAD FILES <<<"}
           </h3>
-          <p className="text-slate-600 mb-4">or click to browse files</p>
+          <p className="text-muted-foreground mb-4 font-mono text-sm">or execute manual file selection</p>
           <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-slate-500">
             <span>Supported file types:</span>
             <div className="flex flex-wrap gap-1">

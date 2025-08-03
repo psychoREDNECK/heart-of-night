@@ -79,7 +79,7 @@ export default function AppConfiguration({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>App Configuration</CardTitle>
+          <CardTitle className="text-primary font-mono tracking-wider">[TARGET CONFIG]</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -93,7 +93,7 @@ export default function AppConfiguration({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>App Configuration</CardTitle>
+        <CardTitle className="text-primary font-mono tracking-wider">[TARGET CONFIG]</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>

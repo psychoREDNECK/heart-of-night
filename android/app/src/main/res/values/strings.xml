@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">PyToApk</string>
-    <string name="title_activity_main">PyToApk</string>
-    <string name="package_name">com.example.pytoapk</string>
-    <string name="custom_url_scheme">com.example.pytoapk</string>
+    <string name="app_name">Heart of Night</string>
+    <string name="title_activity_main">Heart of Night</string>
+    <string name="package_name">com.heartofnight.app</string>
+    <string name="custom_url_scheme">com.heartofnight.app</string>
 </resources>

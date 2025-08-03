@@ -170,7 +170,7 @@ export default function FileManager({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Project Files</CardTitle>
+          <CardTitle className="text-primary font-mono tracking-wider">[PAYLOAD MANAGER]</CardTitle>
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="icon" disabled={!currentProject}>
               <Search className="h-4 w-4" />
