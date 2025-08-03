@@ -63,6 +63,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x android/gradlew
       
+    - name: Generate debug keystore
+      run: |
+        cd android/app
+        keytool -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999 -keyalg RSA -keysize 2048
+      
     - name: Check Android environment
       run: |
         echo "ANDROID_HOME: $ANDROID_HOME"
@@ -81,10 +86,11 @@ jobs:
         echo "Building debug APK..."
         ./gradlew assembleDebug --info --stacktrace
       
-    - name: Build Release APK (unsigned)
+    - name: Build Release APK (signed with debug key)
       run: |
         cd android
-        ./gradlew assembleRelease --info --stacktrace || true
+        echo "Building signed release APK with debug keystore..."
+        ./gradlew assembleRelease --info --stacktrace
       
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
@@ -97,7 +103,7 @@ jobs:
       if: success()
       with:
         name: heart-of-night-release
-        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+        path: android/app/build/outputs/apk/release/app-release.apk
         
     - name: Create Release
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -117,12 +123,12 @@ jobs:
           
           **Downloads:**
           - `app-debug.apk` - Debug version for testing
-          - `app-release-unsigned.apk` - Release version (unsigned)
+          - `app-release.apk` - Release version (installable)
           
           Install the APK on your Android device to run Heart of Night natively.
         files: |
           android/app/build/outputs/apk/debug/app-debug.apk
-          android/app/build/outputs/apk/release/app-release-unsigned.apk
+          android/app/build/outputs/apk/release/app-release.apk
         draft: false
         prerelease: false
       env:
