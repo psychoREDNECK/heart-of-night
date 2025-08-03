@@ -9,6 +9,10 @@ PyToApk is a web-based development platform that converts Python applications in
 - Increased file upload limit to 50MB to accommodate media files
 - Enhanced binary file handling with appropriate content storage for non-text files
 - Updated UI to reflect multi-format file support capabilities
+- **Android App Creation**: Converted web application to native Android app using Capacitor
+- **Mobile-Optimized UI**: Responsive design that adapts to mobile devices with touch-friendly interactions
+- **Native Mobile Features**: File system access, native sharing, device storage integration, and splash screen
+- **Cross-Platform Support**: Single codebase runs on web browsers and Android devices
 
 # User Preferences
 
@@ -56,3 +60,5 @@ Preferred communication style: Simple, everyday language.
 - **File Processing**: Support for Python (.py, .pyw) files, archives (.zip, .tar, .gz), documentation (.txt, .md, .rst), config files (.json, .xml, .yml, .yaml), web assets (.js, .html, .css), images, audio, video, documents, and data files
 - **Build Tools**: Android SDK integration for APK generation and code signing
 - **Development Tools**: Vite plugin ecosystem for enhanced development experience
+- **Mobile Framework**: Capacitor for web-to-native bridge with Android platform support
+- **Native Plugins**: Filesystem, Camera, Device info, Network, Share, Status Bar, and Splash Screen capabilities
