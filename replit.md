@@ -33,6 +33,8 @@
 - **GitHub Integration**: Complete repository setup with automated APK building via GitHub Actions
 - **APK Distribution**: Automated debug and release APK generation on every push to GitHub
 - **Repository Documentation**: Professional README, contributing guidelines, and setup instructions
+- **Mobile Accessibility Improvements**: Enhanced touch targets with minimum 44px buttons, fixed header with better visibility, and dedicated file browser button for mobile devices
+- **Samsung Galaxy S10 Optimization**: Specific improvements for mobile devices including larger buttons, better spacing, and touch-friendly interface elements
 
 # User Preferences
 
