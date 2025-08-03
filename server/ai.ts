@@ -92,7 +92,7 @@ async function callOpenAI(content: string, systemPrompt: string, config: any): P
       'Authorization': `Bearer ${config.apiKey}`
     },
     body: JSON.stringify({
-      model: config.model || 'gpt-4',
+      model: config.model || 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: content }

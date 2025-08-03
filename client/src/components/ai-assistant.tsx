@@ -51,9 +51,9 @@ export default function AIAssistant({ currentProject, selectedFileId, onFileChan
   const [editInput, setEditInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [aiConfig, setAiConfig] = useState<AIConfig>({
-    provider: 'mistral',
+    provider: 'openai',
     apiKey: '',
-    model: 'mistral-large-latest',
+    model: 'gpt-3.5-turbo',
     endpoint: '',
     customName: ''
   });
@@ -81,7 +81,13 @@ export default function AIAssistant({ currentProject, selectedFileId, onFileChan
     try {
       // Check if API key is configured (not required for local providers)
       if (!aiConfig.apiKey && !['llama-maverick', 'ollama'].includes(aiConfig.provider)) {
-        throw new Error('AI API key not configured');
+        toast({
+          title: "API Key Required",
+          description: "Please configure your AI API key in settings to use this feature.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
       }
 
       // Call the AI through backend
