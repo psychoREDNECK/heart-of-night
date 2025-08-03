@@ -13,6 +13,7 @@ import FileManager from "@/components/file-manager";
 import AppConfiguration from "@/components/app-configuration";
 import CodeEditor from "@/components/code-editor";
 import BuildProcess from "@/components/build-process";
+import AIAssistant from "@/components/ai-assistant";
 import type { Project } from "@shared/schema";
 
 export default function Home() {
@@ -179,14 +180,26 @@ export default function Home() {
               />
             </div>
 
-            {/* Code Editor */}
-            <CodeEditor
-              currentProject={currentProject}
-              selectedFileId={selectedFileId}
-            />
+            {/* Main Content Grid */}
+            <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-3'}`}>
+              <div className={`space-y-6 ${isMobile ? 'col-span-1' : 'xl:col-span-2'}`}>
+                {/* Code Editor */}
+                {selectedFileId && currentProject && (
+                  <CodeEditor
+                    currentProject={currentProject}
+                    selectedFileId={selectedFileId}
+                  />
+                )}
 
-            {/* Build Process */}
-            <BuildProcess currentProject={currentProject} />
+                {/* Build Process */}
+                <BuildProcess currentProject={currentProject} />
+              </div>
+              
+              {/* AI Assistant */}
+              <div className={`${isMobile ? 'col-span-1' : 'xl:col-span-1'}`}>
+                <AIAssistant />
+              </div>
+            </div>
           </div>
         </div>
       </div>
