@@ -2,6 +2,8 @@
 
 **Heart of Night** is a hacker-themed Python-to-APK weaponization platform that converts Python applications into Android APK files. This cybersecurity-focused development environment provides a complete IDE experience with project management, code editing, multi-format file upload capabilities, and an automated build system. Users can create projects, manage Python files along with assets, configuration files, documentation, and other project resources, configure app settings, and build Android applications directly from their browser. The interface features a Matrix-inspired dark theme with terminal aesthetics, neon green accents, and hacker-style terminology throughout the application.
 
+**Deployed Backend URL**: https://code-assimilation-psychoredneck12.replit.app
+
 ## Recent Changes (August 2025)
 - Enhanced file upload system to support multiple file types beyond Python (.py, .pyw)
 - Added support for archives (.zip, .tar, .gz), documentation (.txt, .md, .rst), config files (.json, .xml, .yml, .yaml), web assets (.js, .html, .css), images, audio, video, documents, and data files
