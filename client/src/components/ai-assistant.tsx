@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Send, Bot, Code, MessageSquare, Settings, Zap, Terminal, Image, Sparkles, Edit3, FileCode, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,75 @@ export default function AIAssistant({ currentProject, selectedFileId, onFileChan
   });
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const { toast } = useToast();
+
+  // Load saved API keys on component mount
+  useEffect(() => {
+    const loadSavedApiKeys = () => {
+      try {
+        // Load saved provider if any
+        const savedProvider = localStorage.getItem('ai_provider');
+        if (savedProvider) {
+          setAiConfig(prev => ({ ...prev, provider: savedProvider as AIConfig['provider'] }));
+        }
+
+        // Load saved API key for current provider
+        const savedApiKey = localStorage.getItem(`ai_apikey_${aiConfig.provider}`);
+        if (savedApiKey) {
+          setAiConfig(prev => ({ ...prev, apiKey: savedApiKey }));
+        }
+
+        // Load saved model for current provider
+        const savedModel = localStorage.getItem(`ai_model_${aiConfig.provider}`);
+        if (savedModel) {
+          setAiConfig(prev => ({ ...prev, model: savedModel }));
+        }
+
+        // Load saved endpoint for custom providers
+        const savedEndpoint = localStorage.getItem(`ai_endpoint_${aiConfig.provider}`);
+        if (savedEndpoint) {
+          setAiConfig(prev => ({ ...prev, endpoint: savedEndpoint }));
+        }
+      } catch (error) {
+        console.error('Failed to load saved API keys:', error);
+      }
+    };
+
+    loadSavedApiKeys();
+  }, []);
+
+  // Load saved settings when provider changes
+  useEffect(() => {
+    const loadProviderSettings = () => {
+      try {
+        const savedApiKey = localStorage.getItem(`ai_apikey_${aiConfig.provider}`);
+        const savedModel = localStorage.getItem(`ai_model_${aiConfig.provider}`);
+        const savedEndpoint = localStorage.getItem(`ai_endpoint_${aiConfig.provider}`);
+
+        setAiConfig(prev => ({
+          ...prev,
+          apiKey: savedApiKey || '',
+          model: savedModel || getDefaultModel(prev.provider),
+          endpoint: savedEndpoint || ''
+        }));
+      } catch (error) {
+        console.error('Failed to load provider settings:', error);
+      }
+    };
+
+    loadProviderSettings();
+  }, [aiConfig.provider]);
+
+  const getDefaultModel = (provider: string): string => {
+    switch (provider) {
+      case 'openai': return 'gpt-3.5-turbo';
+      case 'anthropic': return 'claude-3-sonnet-20240229';
+      case 'llama-maverick': return 'maverick-4';
+      case 'mistral': return 'mistral-large-latest';
+      case 'ollama': return 'llama2';
+      case 'together': return 'meta-llama/Llama-2-70b-chat-hf';
+      default: return '';
+    }
+  };
 
   const sendMessage = async (content: string, type: 'chat' | 'code' | 'image' = 'chat') => {
     if (!content.trim()) return;
@@ -376,25 +445,32 @@ export default function AIAssistant({ currentProject, selectedFileId, onFileChan
       return;
     }
 
-    localStorage.setItem('heart-of-night-ai-config', JSON.stringify(aiConfig));
+    // Save provider preference
+    localStorage.setItem('ai_provider', aiConfig.provider);
+    
+    // Save API key for this specific provider
+    if (aiConfig.apiKey) {
+      localStorage.setItem(`ai_apikey_${aiConfig.provider}`, aiConfig.apiKey);
+    }
+    
+    // Save model for this provider
+    if (aiConfig.model) {
+      localStorage.setItem(`ai_model_${aiConfig.provider}`, aiConfig.model);
+    }
+    
+    // Save endpoint for custom/ollama providers
+    if (aiConfig.endpoint) {
+      localStorage.setItem(`ai_endpoint_${aiConfig.provider}`, aiConfig.endpoint);
+    }
+
     setIsConfigOpen(false);
     toast({
       title: "Configuration Saved",
-      description: "AI assistant is now configured",
+      description: `${aiConfig.provider.toUpperCase()} API key saved successfully`,
     });
   };
 
-  // Load config on mount
-  useState(() => {
-    const saved = localStorage.getItem('heart-of-night-ai-config');
-    if (saved) {
-      try {
-        setAiConfig(JSON.parse(saved));
-      } catch (error) {
-        console.error('Failed to load AI config:', error);
-      }
-    }
-  });
+
 
   return (
     <Card className="h-full flex flex-col">
