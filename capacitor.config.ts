@@ -5,7 +5,9 @@ const config: CapacitorConfig = {
   appName: 'Heart of Night',
   webDir: 'dist/public',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    url: 'https://code-assimilation-psychoredneck12.replit.app',
+    cleartext: true
   },
   plugins: {
     SplashScreen: {
@@ -16,6 +18,15 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: "DARK",
       backgroundColor: "#0D1117"
+    },
+    Filesystem: {
+      ioTimeout: 15000
+    },
+    Camera: {
+      permissions: {
+        camera: "Camera access is required to take photos.",
+        photos: "Photo library access is required to select images."
+      }
     }
   }
 };

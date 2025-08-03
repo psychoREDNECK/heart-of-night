@@ -37,6 +37,7 @@
 - **Samsung Galaxy S10 Optimization**: Specific improvements for mobile devices including larger buttons, better spacing, and touch-friendly interface elements
 - **API Key Persistence**: Individual API key storage for each AI provider (OpenAI, Mistral, Anthropic, etc.) using localStorage to avoid re-entering credentials
 - **Mobile File Upload Enhancement**: Dedicated "Select Files" button for touch devices since drag-and-drop doesn't work on mobile phones
+- **Mobile App Fixes**: Added file access permissions, Capacitor configuration, and proper mobile file browser functionality for Android APK
 
 # User Preferences
 

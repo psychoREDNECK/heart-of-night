@@ -23,7 +23,10 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
   // Check if on mobile device
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth <= 768;
+      const isCapacitor = !!(window as any).Capacitor;
+      setIsMobile(isTouchDevice || isSmallScreen || isCapacitor);
     };
     
     checkMobile();
@@ -179,18 +182,19 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
           <p className="text-muted-foreground mb-4 font-mono text-sm">or execute manual file selection</p>
           
           {/* Mobile File Browser Button */}
-          {(isMobile || !window.matchMedia('(pointer: fine)').matches) && (
-            <Button
-              onClick={() => open()}
-              disabled={!currentProject}
-              className="mb-4 h-14 px-8 text-base font-mono neon-glow bg-primary/10 border-primary hover:bg-primary/20"
-              variant="outline"
-              type="button"
-            >
-              <FileUp className="h-6 w-6 mr-2" />
-              Select Files
-            </Button>
-          )}
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              open();
+            }}
+            disabled={!currentProject}
+            className="mb-4 h-14 px-8 text-base font-mono neon-glow bg-primary/10 border-primary hover:bg-primary/20"
+            variant="outline"
+            type="button"
+          >
+            <FileUp className="h-6 w-6 mr-2" />
+            Select Files
+          </Button>
           
           <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-slate-500">
             <span>Supported file types:</span>
