@@ -21,10 +21,11 @@ interface Message {
 }
 
 interface AIConfig {
-  provider: 'openai' | 'anthropic' | 'custom';
+  provider: 'openai' | 'anthropic' | 'llama-maverick' | 'custom';
   apiKey: string;
   model: string;
   endpoint?: string;
+  customName?: string;
 }
 
 export default function AIAssistant() {
@@ -40,10 +41,11 @@ export default function AIAssistant() {
   const [codeInput, setCodeInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [aiConfig, setAiConfig] = useState<AIConfig>({
-    provider: 'openai',
+    provider: 'llama-maverick',
     apiKey: '',
-    model: 'gpt-4',
-    endpoint: ''
+    model: 'maverick-4',
+    endpoint: '',
+    customName: 'LLaMA Maverick 4'
   });
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const { toast } = useToast();
@@ -65,18 +67,37 @@ export default function AIAssistant() {
     setIsLoading(true);
 
     try {
-      // Check if API key is configured
-      if (!aiConfig.apiKey) {
+      // Check if API key is configured (not required for LLaMA Maverick)
+      if (!aiConfig.apiKey && aiConfig.provider !== 'llama-maverick') {
         throw new Error('AI API key not configured');
       }
 
-      // Simulate AI response (replace with actual AI API call)
-      const response = await simulateAIResponse(content, type, aiConfig);
+      // Call the AI through backend
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          provider: aiConfig.provider,
+          content,
+          type,
+          config: aiConfig
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'AI request failed');
+      }
+
+      const data = await response.json();
+      const aiResponse = data.response;
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: response,
+        content: aiResponse,
         timestamp: new Date()
       };
 
@@ -101,48 +122,142 @@ export default function AIAssistant() {
     }
   };
 
-  const simulateAIResponse = async (content: string, type: 'chat' | 'code', config: AIConfig): Promise<string> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+  const callAI = async (content: string, type: 'chat' | 'code', config: AIConfig): Promise<string> => {
+    const systemPrompt = type === 'code' 
+      ? "You are a cybersecurity expert and Python specialist. Analyze code for vulnerabilities, performance issues, and provide secure implementation suggestions. Focus on Android APK development and hacking tools."
+      : "You are an AI assistant specialized in cybersecurity, hacking tools, and Python-to-APK development. Use hacker terminology and provide expert advice.";
 
-    if (type === 'code') {
-      return `[CODE ANALYSIS COMPLETE]
+    try {
+      let response;
+      
+      switch (config.provider) {
+        case 'llama-maverick':
+          response = await callLlamaMaverick(content, systemPrompt, config);
+          break;
+        case 'openai':
+          response = await callOpenAI(content, systemPrompt, config);
+          break;
+        case 'anthropic':
+          response = await callAnthropic(content, systemPrompt, config);
+          break;
+        case 'custom':
+          response = await callCustomEndpoint(content, systemPrompt, config);
+          break;
+        default:
+          throw new Error('Unknown AI provider');
+      }
+      
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  };
 
-ISSUES DETECTED:
-- Line 3: Consider using list comprehension for better performance
-- Line 7: Missing error handling for file operations
-- Line 12: Variable name 'data' is too generic
+  const callLlamaMaverick = async (content: string, systemPrompt: string, config: AIConfig): Promise<string> => {
+    const endpoint = config.endpoint || 'http://localhost:11434/api/generate';
+    
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(config.apiKey && { 'Authorization': `Bearer ${config.apiKey}` })
+      },
+      body: JSON.stringify({
+        model: config.model || 'maverick-4',
+        prompt: `${systemPrompt}\n\nUser: ${content}\nAssistant:`,
+        stream: false,
+        options: {
+          temperature: 0.7,
+          top_p: 0.9,
+          max_tokens: 1000
+        }
+      })
+    });
 
-SUGGESTED FIXES:
-\`\`\`python
-# Optimized version
-result = [x for x in items if x.is_valid()]
-
-# Add error handling
-try:
-    with open(filename, 'r') as file:
-        content = file.read()
-except FileNotFoundError:
-    print(f"File {filename} not found")
-\`\`\`
-
-SECURITY ASSESSMENT:
-✓ No obvious vulnerabilities detected
-⚠ Recommend input validation for user data
-
-Would you like me to explain any of these suggestions?`;
+    if (!response.ok) {
+      throw new Error(`LLaMA Maverick API error: ${response.status}`);
     }
 
-    // General chat responses
-    const responses = [
-      "I'm here to help with your Python-to-APK development. What specific challenge are you facing?",
-      "For hacking tools, consider implementing proper obfuscation techniques to avoid detection.",
-      "Remember to test your payload thoroughly in a sandboxed environment before deployment.",
-      "Need help with Android permissions? I can guide you through the manifest configuration.",
-      "For better stealth, consider implementing anti-analysis techniques in your APK."
-    ];
+    const data = await response.json();
+    return data.response || data.content || 'No response from LLaMA Maverick';
+  };
 
-    return responses[Math.floor(Math.random() * responses.length)];
+  const callOpenAI = async (content: string, systemPrompt: string, config: AIConfig): Promise<string> => {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.apiKey}`
+      },
+      body: JSON.stringify({
+        model: config.model || 'gpt-4',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: content }
+        ],
+        max_tokens: 1000,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || 'No response from OpenAI';
+  };
+
+  const callAnthropic = async (content: string, systemPrompt: string, config: AIConfig): Promise<string> => {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': config.apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: config.model || 'claude-3-sonnet-20240229',
+        max_tokens: 1000,
+        messages: [
+          { role: 'user', content: `${systemPrompt}\n\n${content}` }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Anthropic API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.content[0]?.text || 'No response from Anthropic';
+  };
+
+  const callCustomEndpoint = async (content: string, systemPrompt: string, config: AIConfig): Promise<string> => {
+    if (!config.endpoint) {
+      throw new Error('Custom endpoint URL required');
+    }
+
+    const response = await fetch(config.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(config.apiKey && { 'Authorization': `Bearer ${config.apiKey}` })
+      },
+      body: JSON.stringify({
+        model: config.model,
+        prompt: `${systemPrompt}\n\nUser: ${content}\nAssistant:`,
+        max_tokens: 1000,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Custom API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.response || data.content || data.text || 'No response from custom AI';
   };
 
   const handleKeyPress = (e: React.KeyboardEvent, type: 'chat' | 'code') => {
@@ -154,10 +269,11 @@ Would you like me to explain any of these suggestions?`;
   };
 
   const saveConfig = () => {
-    if (!aiConfig.apiKey) {
+    // LLaMA Maverick might not require API key if running locally
+    if (!aiConfig.apiKey && aiConfig.provider !== 'llama-maverick') {
       toast({
         title: "Configuration Error",
-        description: "API key is required",
+        description: "API key is required for this provider",
         variant: "destructive",
       });
       return;
@@ -192,8 +308,12 @@ Would you like me to explain any of these suggestions?`;
             [AI OPERATOR]
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge variant={aiConfig.apiKey ? "default" : "destructive"} className="font-mono text-xs">
-              {aiConfig.apiKey ? 'ONLINE' : 'OFFLINE'}
+            <Badge variant={aiConfig.apiKey || aiConfig.provider === 'llama-maverick' ? "default" : "destructive"} className="font-mono text-xs">
+              {(aiConfig.apiKey || aiConfig.provider === 'llama-maverick') ? 
+                (aiConfig.provider === 'llama-maverick' ? 'MAVERICK-4' :
+                 aiConfig.provider === 'openai' ? 'GPT-4' :
+                 aiConfig.provider === 'anthropic' ? 'CLAUDE' :
+                 aiConfig.customName || 'CUSTOM') : 'OFFLINE'}
             </Badge>
             <Dialog open={isConfigOpen} onOpenChange={setIsConfigOpen}>
               <DialogTrigger asChild>
@@ -213,9 +333,10 @@ Would you like me to explain any of these suggestions?`;
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="openai">OpenAI</SelectItem>
-                        <SelectItem value="anthropic">Anthropic</SelectItem>
-                        <SelectItem value="custom">Custom Endpoint</SelectItem>
+                        <SelectItem value="llama-maverick">LLaMA Maverick 4</SelectItem>
+                        <SelectItem value="openai">OpenAI GPT</SelectItem>
+                        <SelectItem value="anthropic">Anthropic Claude</SelectItem>
+                        <SelectItem value="custom">Custom AI</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -236,18 +357,41 @@ Would you like me to explain any of these suggestions?`;
                       id="model"
                       value={aiConfig.model}
                       onChange={(e) => setAiConfig(prev => ({ ...prev, model: e.target.value }))}
-                      placeholder="gpt-4"
+                      placeholder={
+                        aiConfig.provider === 'llama-maverick' ? 'maverick-4' :
+                        aiConfig.provider === 'openai' ? 'gpt-4' :
+                        aiConfig.provider === 'anthropic' ? 'claude-3-sonnet-20240229' :
+                        'your-model'
+                      }
                       className="font-mono"
                     />
                   </div>
-                  {aiConfig.provider === 'custom' && (
+                  {(aiConfig.provider === 'custom' || aiConfig.provider === 'llama-maverick') && (
                     <div className="grid gap-2">
-                      <Label htmlFor="endpoint" className="font-mono">Endpoint URL</Label>
+                      <Label htmlFor="endpoint" className="font-mono">
+                        {aiConfig.provider === 'llama-maverick' ? 'LLaMA Endpoint' : 'Custom Endpoint'}
+                      </Label>
                       <Input
                         id="endpoint"
                         value={aiConfig.endpoint || ''}
                         onChange={(e) => setAiConfig(prev => ({ ...prev, endpoint: e.target.value }))}
-                        placeholder="https://api.example.com/v1"
+                        placeholder={
+                          aiConfig.provider === 'llama-maverick' 
+                            ? 'http://localhost:11434/api/generate' 
+                            : 'https://api.example.com/v1'
+                        }
+                        className="font-mono"
+                      />
+                    </div>
+                  )}
+                  {aiConfig.provider === 'custom' && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="customName" className="font-mono">AI Name</Label>
+                      <Input
+                        id="customName"
+                        value={aiConfig.customName || ''}
+                        onChange={(e) => setAiConfig(prev => ({ ...prev, customName: e.target.value }))}
+                        placeholder="My Custom AI"
                         className="font-mono"
                       />
                     </div>
@@ -335,7 +479,9 @@ Would you like me to explain any of these suggestions?`;
           <TabsContent value="code" className="flex-1 flex flex-col">
             <div className="flex-1 p-4 space-y-4">
               <div>
-                <Label className="font-mono text-primary tracking-wider">PASTE CODE FOR ANALYSIS</Label>
+                <Label className="font-mono text-primary tracking-wider">
+          DEPLOY CODE FOR {aiConfig.provider === 'llama-maverick' ? 'MAVERICK' : 'AI'} ANALYSIS
+        </Label>
                 <Textarea
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
