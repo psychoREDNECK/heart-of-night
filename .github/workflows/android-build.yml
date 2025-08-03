@@ -1,0 +1,96 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build web assets
+      run: npm run build
+      
+    - name: Capacitor sync
+      run: |
+        npm install -g @capacitor/cli
+        npx cap sync android
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x android/gradlew
+      
+    - name: Build debug APK
+      run: |
+        cd android
+        ./gradlew assembleDebug
+        
+    - name: Build release APK (unsigned)
+      run: |
+        cd android
+        ./gradlew assembleRelease
+        
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: heart-of-night-debug
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: heart-of-night-release
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+
+    - name: Create Release
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.run_number }}
+        name: Heart of Night v${{ github.run_number }}
+        body: |
+          ## Heart of Night - Hacker Android Platform
+          
+          **Features:**
+          - Multiple AI providers (Mistral, LLaMA Maverick 4, OpenAI, etc.)
+          - AI code editor that can modify the app itself
+          - Image generation with DALL-E 3
+          - Python-to-APK conversion workflow
+          - Hacker terminal aesthetics with Matrix effects
+          
+          **Downloads:**
+          - `app-debug.apk` - Debug version for testing
+          - `app-release-unsigned.apk` - Release version (unsigned)
+          
+          Install the APK on your Android device to run Heart of Night natively.
+        files: |
+          android/app/build/outputs/apk/debug/app-debug.apk
+          android/app/build/outputs/apk/release/app-release-unsigned.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
