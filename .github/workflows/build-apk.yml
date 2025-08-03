@@ -1,12 +1,11 @@
-name: Build APK
+name: Build Heart of Night APK
 
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  release:
-    types: [ created ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -34,8 +33,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Build web application
-      run: npm run build
+    - name: Build frontend only
+      run: npx vite build
+      
+    - name: Install Capacitor CLI
+      run: npm install -g @capacitor/cli
       
     - name: Sync Capacitor
       run: npx cap sync android
@@ -61,14 +63,33 @@ jobs:
       if: success()
       with:
         name: heart-of-night-release
-        path: android/app/build/outputs/apk/release/app-release.apk
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
         
     - name: Create Release
-      if: github.event_name == 'release'
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: v${{ github.run_number }}
+        name: Heart of Night v${{ github.run_number }}
+        body: |
+          ## Heart of Night - Cyberpunk Android Platform
+          
+          **Features:**
+          - Multiple AI providers (Mistral, LLaMA Maverick 4, OpenAI, etc.)
+          - AI code editor that can modify the app itself
+          - Image generation with DALL-E 3
+          - Python-to-APK conversion workflow
+          - Hacker terminal aesthetics with Matrix effects
+          
+          **Downloads:**
+          - `app-debug.apk` - Debug version for testing
+          - `app-release-unsigned.apk` - Release version (unsigned)
+          
+          Install the APK on your Android device to run Heart of Night natively.
         files: |
           android/app/build/outputs/apk/debug/app-debug.apk
-          android/app/build/outputs/apk/release/app-release.apk
+          android/app/build/outputs/apk/release/app-release-unsigned.apk
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
