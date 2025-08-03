@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CloudUpload } from "lucide-react";
+import { CloudUpload, FileUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Project } from "@shared/schema";
@@ -15,8 +16,20 @@ interface FileUploadProps {
 export default function FileUpload({ currentProject }: FileUploadProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check if on mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const uploadMutation = useMutation({
     mutationFn: async (files: File[]) => {
@@ -113,7 +126,7 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
     [currentProject, uploadMutation, toast]
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: {
       'text/x-python': ['.py', '.pyw'],
@@ -164,6 +177,21 @@ export default function FileUpload({ currentProject }: FileUploadProps) {
             {isDragActive ? ">>> DEPLOYING FILES <<<" : ">>> DROP PAYLOAD FILES <<<"}
           </h3>
           <p className="text-muted-foreground mb-4 font-mono text-sm">or execute manual file selection</p>
+          
+          {/* Mobile File Browser Button */}
+          {(isMobile || !window.matchMedia('(pointer: fine)').matches) && (
+            <Button
+              onClick={() => open()}
+              disabled={!currentProject}
+              className="mb-4 h-14 px-8 text-base font-mono neon-glow bg-primary/10 border-primary hover:bg-primary/20"
+              variant="outline"
+              type="button"
+            >
+              <FileUp className="h-6 w-6 mr-2" />
+              Select Files
+            </Button>
+          )}
+          
           <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-slate-500">
             <span>Supported file types:</span>
             <div className="flex flex-wrap gap-1">
