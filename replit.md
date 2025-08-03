@@ -35,6 +35,8 @@
 - **Repository Documentation**: Professional README, contributing guidelines, and setup instructions
 - **Mobile Accessibility Improvements**: Enhanced touch targets with minimum 44px buttons, fixed header with better visibility, and dedicated file browser button for mobile devices
 - **Samsung Galaxy S10 Optimization**: Specific improvements for mobile devices including larger buttons, better spacing, and touch-friendly interface elements
+- **API Key Persistence**: Individual API key storage for each AI provider (OpenAI, Mistral, Anthropic, etc.) using localStorage to avoid re-entering credentials
+- **Mobile File Upload Enhancement**: Dedicated "Select Files" button for touch devices since drag-and-drop doesn't work on mobile phones
 
 # User Preferences
 
